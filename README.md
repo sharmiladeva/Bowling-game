@@ -18,7 +18,9 @@ Provided REST APIs :
 
 1. /game/start(POST) -takes array of Bowler's firstName and lastName as input. 
 2. /game/score/{bowlerId}/{gameId} - fetches the score of the bowler in a particular game(current or completed).
-3. /game/winner/{gameId} - Fetches the id of the winner in a particular game.
+3. /game/winner/{gameId} - fetches the id of the winner in a particular game.
 4. /game/allocatedlane/{bowlerId}/{gameId} - fetches the allocated lane of the bowler in a particular game
 5. /game/strikes/{bowlerId}/{gameId} - Number of strikes scored by a bowler in a particular game.
 6. /game/strikes/{bowlerId} - Number of strikes scored by a bowler in all games.
+7. /bowler/list - fetches list of all bowlers.
+8. /bowler/{bowlerId} - fetches a particular bowler with id
