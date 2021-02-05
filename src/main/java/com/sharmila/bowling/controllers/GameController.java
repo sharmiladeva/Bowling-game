@@ -1,16 +1,20 @@
 package com.sharmila.bowling.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sharmila.bowling.dto.BowlersDto;
 import com.sharmila.bowling.dto.GameResponseDto;
 import com.sharmila.bowling.exception.BowlingServiceException;
+import com.sharmila.bowling.exception.ErrorResponse;
 import com.sharmila.bowling.service.GameControllerService;
 
 @RestController
@@ -18,57 +22,64 @@ import com.sharmila.bowling.service.GameControllerService;
 public class GameController
 {
 	@Autowired
-	GameControllerService gameControllerService;
+	private GameControllerService gameControllerService;
 
 
-	@RequestMapping(value = "/health", method = RequestMethod.GET)
+	@GetMapping(value = "/health")
 	public String test()
 	{
 		return "RUNNING";
 	}
 
 
-	@RequestMapping(value = "/start", method = RequestMethod.POST)
-	public ResponseEntity<?> startGame(@RequestBody BowlersDto bowlers) throws BowlingServiceException
+	@PostMapping(value = "/start")
+	public ResponseEntity<GameResponseDto> startGame(@RequestBody BowlersDto bowlers)
 	{
 		GameResponseDto  response =gameControllerService.createBowlersAndAssignLanes(bowlers.getBowlers());
 		System.out.println(response.getDetails().size());
 		return ResponseEntity.ok(response);
 	}
 	
-	@RequestMapping(value = "/score/{bowlerId}/{gameId}", method = RequestMethod.GET)
-	public Integer getScoreOfBowler(@PathVariable Long bowlerId,@PathVariable Long gameId) throws BowlingServiceException
+	@GetMapping(value = "/score/{bowlerId}/{gameId}")
+	public Integer getScoreOfBowler(@PathVariable Long bowlerId,@PathVariable Long gameId)
 	{
 		return gameControllerService.calculateScore(bowlerId,gameId);
 		 
 	}
 	
-	@RequestMapping(value = "/winner/{gameId}", method = RequestMethod.GET)
-	public Long getWinnerOfGame(@PathVariable Long gameId) throws BowlingServiceException
+	@GetMapping(value = "/winner/{gameId}")
+	public Long getWinnerOfGame(@PathVariable Long gameId)
 	{
 		return gameControllerService.getWinner(gameId);
 		 
 	}
 	
-	@RequestMapping(value = "/allocatedlane/{bowlerId}/{gameId}", method = RequestMethod.GET)
-	public Integer getAllocatedLane(@PathVariable Long bowlerId,@PathVariable Long gameId) throws BowlingServiceException
+	@GetMapping(value = "/allocatedlane/{bowlerId}/{gameId}")
+	public Integer getAllocatedLane(@PathVariable Long bowlerId,@PathVariable Long gameId)
 	{
 		return gameControllerService.getAllocatedLane(bowlerId,gameId);
 		 
 	}
 	
-	@RequestMapping(value = "/strikes/{bowlerId}/{gameId}", method = RequestMethod.GET)
-	public Integer getTotalStrikesInGame(@PathVariable Long bowlerId,@PathVariable Long gameId) throws BowlingServiceException
+	@GetMapping(value = "/strikes/{bowlerId}/{gameId}")
+	public Integer getTotalStrikesInGame(@PathVariable Long bowlerId,@PathVariable Long gameId)
 	{
 		return gameControllerService.getTotalStrikes(bowlerId,gameId);
 		 
 	}
 	
-	@RequestMapping(value = "/strikes/{bowlerId}", method = RequestMethod.GET)
-	public Integer getTotalStrikes(@PathVariable Long bowlerId) throws BowlingServiceException
+	@GetMapping(value = "/strikes/{bowlerId}")
+	public Integer getTotalStrikes(@PathVariable Long bowlerId)
 	{
 		return gameControllerService.getTotalStrikes(bowlerId,null);
 		 
+	}
+	
+	@ExceptionHandler
+	public ResponseEntity<Object> bowlingServiceException(BowlingServiceException ex)
+	{
+		ErrorResponse error = new ErrorResponse(ex.getErrormsg());
+		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 	}
 
 }

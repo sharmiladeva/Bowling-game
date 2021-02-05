@@ -29,6 +29,6 @@ public interface GameRepo extends JpaRepository<Game, Long> {
 	@Query("UPDATE Game SET scoreInLastBowl = ?1 WHERE gameBowlerId.gameId = ?2 and gameBowlerId.bowlerId = ?3")
 	void updateScoreInLastbowl(int score,Long gameId, Long bowlerId);
 	
-	@Query("SELECT scoreInLastBowl from Game where gameId = ?1 and bowlerId = ?2")
+	@Query("SELECT scoreInLastBowl from Game where gameBowlerId.gameId = ?1 and gameBowlerId.bowlerId = ?2")
 	int getScoreInLastbowl(Long gameId, Long bowlerId);
 }

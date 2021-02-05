@@ -1,9 +1,5 @@
 package com.sharmila.bowling.models;
 
-import javax.persistence.JoinColumn;
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
-import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.persistence.GenerationType;
 import javax.persistence.GeneratedValue;

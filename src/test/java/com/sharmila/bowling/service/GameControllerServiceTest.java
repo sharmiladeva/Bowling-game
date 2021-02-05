@@ -123,33 +123,5 @@ public class GameControllerServiceTest {
 		assertTrue(gameControllerService.calculateScore(1L, 1L)==84);
 	}
 	
-	@Test
-	public void getBowlersTest()
-	{
-		List<Bowler> bowlers = new ArrayList<>();
-		Bowler b1 = new Bowler();
-		b1.setId(1L);
-		b1.setFirstName("fName1");
-		b1.setLastName("lName1");
-		Bowler b2 = new Bowler();
-		b2.setId(2L);
-		b2.setFirstName("fName2");
-		b2.setLastName("lName2");
-		bowlers.add(b1);
-		bowlers.add(b2);
-		Mockito.when(bowlerRepo.findAll()).thenReturn(bowlers);
-		assertTrue(gameControllerService.getBowlerDetails().getBowlers().size()==bowlers.size());
-	}
 	
-	@Test
-	public void getBowlerByIdTest() throws BowlingServiceException
-	{
-		Bowler b1 = new Bowler();
-		b1.setId(1L);
-		b1.setFirstName("fName1");
-		b1.setLastName("lName1");
-		Optional<Bowler> optionalBowler = Optional.of(b1);
-		Mockito.when(bowlerRepo.findById(1L)).thenReturn(optionalBowler);
-		assertTrue(gameControllerService.getBowlerDetails(1L).getFirstName().equals("fName1"));
-	}
 }

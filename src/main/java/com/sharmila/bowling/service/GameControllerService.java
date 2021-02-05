@@ -1,18 +1,21 @@
 package com.sharmila.bowling.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Random;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
+import java.util.logging.SimpleFormatter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.sharmila.bowling.dto.BowlerGameDetailsDto;
-import com.sharmila.bowling.dto.BowlersDto;
 import com.sharmila.bowling.dto.GameResponseDto;
 import com.sharmila.bowling.exception.BowlingServiceException;
 import com.sharmila.bowling.models.Bowler;
@@ -35,13 +38,35 @@ public class GameControllerService {
 	private SlotRepo slotRepo;
 
 	private static long gameNum = 1L;
+	
+	protected static final java.util.logging.Logger CONSOLE_LOGGER = java.util.logging.Logger.getLogger(GameControllerService.class.getName()); 
+	static
+	{
+		ConsoleHandler handler = new ConsoleHandler();
+		handler.setLevel(java.util.logging.Level.ALL);
+		handler.setFormatter(new SimpleFormatter()
+		{
+			private static final String FORMAT = "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL %4$s %2$s %5$s%6$s";
+
+
+			@Override
+			public synchronized String format(LogRecord lr)
+			{
+				return String.format(FORMAT, new Date(lr.getMillis()), lr.getLoggerName(), lr.getLoggerName(),
+		                             lr.getLevel().getLocalizedName(), formatMessage(lr), "");
+			}
+		});
+		CONSOLE_LOGGER.addHandler(handler);
+		CONSOLE_LOGGER.setLevel(java.util.logging.Level.ALL);
+		CONSOLE_LOGGER.setUseParentHandlers(false);
+	}
 
 	public GameResponseDto createBowlersAndAssignLanes(List<Bowler> bowlers) throws BowlingServiceException {
 		GameResponseDto response = new GameResponseDto();
 		List<BowlerGameDetailsDto> res = new ArrayList<>();
 		List<BowlerGameDetailsDto> details = new ArrayList<>();
 		List<Game> ongoingGames = validateRequestedBowlers(bowlers);
-		HashMap<Integer, Integer> hm = new HashMap<>();
+		Map<Integer, Integer> hm = new HashMap<>();
 		for (Game game : ongoingGames) {
 			int laneNum = game.getLaneNum();
 			if (hm.get(laneNum) != null) {
@@ -50,9 +75,8 @@ public class GameControllerService {
 			} else
 				hm.put(laneNum, 1);
 		}
-		System.out.print("game Id :" + gameNum);
+		CONSOLE_LOGGER.fine("game Id :" + gameNum);
 		for (int i = 1, j = 0; i <= Constants.NUM_OF_LANES && j < bowlers.size(); i++) {
-			//HashMap<Long, Long> bowlerGameIdMap = new HashMap<>();
 			List<Long> listOfBowlerIDs = new ArrayList<>();
 			int availableBowlersPerLane;
 			if (hm.get(i) != null)
@@ -67,10 +91,10 @@ public class GameControllerService {
 				if (bowlerFromDB == null) {
 					Bowler savedBowler = bowlerRepo.save(bowler);
 					bowlerId = savedBowler.getId();
-					System.out.println("Created new bowler with Id : " + bowlerId);
+					CONSOLE_LOGGER.fine("Created new bowler with Id : " + bowlerId);
 				} else {
 					bowlerId = bowlerFromDB.getId();
-					System.out.println("Bowler already exists.. id is " + bowlerId);
+					CONSOLE_LOGGER.fine("Bowler already exists.. id is " + bowlerId);
 				}
 				System.out.println("creating a game for bowler " + bowlerId + "in lane " + i);
 				Game game = new Game();
@@ -85,7 +109,6 @@ public class GameControllerService {
 			if (!listOfBowlerIDs.isEmpty()) {
 				res = playGame(listOfBowlerIDs, i);
 				for (BowlerGameDetailsDto d : res) {
-					System.out.println("adding");
 					details.add(d);
 				}
 			}
@@ -97,7 +120,7 @@ public class GameControllerService {
 
 	private List<Game> validateRequestedBowlers(List<Bowler> bowlers) throws BowlingServiceException {
 		List<Game> ongoingGames = gameRepo.findByOngoing(true);
-		System.out.println("ongoingGames size :" + ongoingGames.size());
+		CONSOLE_LOGGER.fine("ongoingGames size :" + ongoingGames.size());
 		int availableSlots = Constants.BOWLERS_PER_LANE * Constants.NUM_OF_LANES - ongoingGames.size();
 		if (availableSlots == 0 || availableSlots < bowlers.size()) {
 			throw new BowlingServiceException("All the lanes are occupied !!");
@@ -182,7 +205,7 @@ public class GameControllerService {
 				}
 			}
 			int scoreInLastBowl = gameRepo.getScoreInLastbowl(gameId, bowlerId);
-			System.out.println("gameId = "+gameId+" bowlerId = "+bowlerId+" scoreInLastBowl = "+scoreInLastBowl);
+			CONSOLE_LOGGER.fine("gameId = "+gameId+" bowlerId = "+bowlerId+" scoreInLastBowl = "+scoreInLastBowl);
 			score+=scoreInLastBowl;
 		}
 		return score;
@@ -204,21 +227,6 @@ public class GameControllerService {
 			}
 		}
 		return maxScoredBowler;
-	}
-
-	public Bowler getBowlerDetails(Long bowlerId) throws BowlingServiceException {
-		Optional<Bowler> bowler = bowlerRepo.findById(bowlerId);
-		if(bowler.isPresent())
-			return bowler.get();
-		else
-			throw new BowlingServiceException("No such bowler");
-	}
-
-	public BowlersDto getBowlerDetails() {
-		List<Bowler> bowlers =bowlerRepo.findAll();
-		BowlersDto dto = new BowlersDto();
-		dto.setBowlers(bowlers);
-		return dto;
 	}
 
 	public Integer getAllocatedLane(Long bowlerId, Long gameId) {

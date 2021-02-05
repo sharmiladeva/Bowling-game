@@ -1,8 +1,12 @@
 package com.sharmila.bowling.exception;
 
-public class BowlingServiceException extends RuntimeException{
+public class ErrorResponse {
 
 	private String errormsg;
+
+	public ErrorResponse(String errormsg) {
+		this.errormsg = errormsg;
+	}
 
 	public String getErrormsg() {
 		return errormsg;
@@ -11,10 +15,4 @@ public class BowlingServiceException extends RuntimeException{
 	public void setErrormsg(String errormsg) {
 		this.errormsg = errormsg;
 	}
-	
-	public BowlingServiceException(String errorMsg)
-	{
-		this.errormsg=errorMsg;
-	}
-	
 }
